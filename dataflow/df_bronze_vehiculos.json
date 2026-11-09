@@ -12,31 +12,39 @@
 						"referenceName": "bronze_vehiculos_csv",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "csv"
 				},
 				{
 					"dataset": {
 						"referenceName": "bronze_vehiculos_sql",
 						"type": "DatasetReference"
 					},
-					"name": "source2"
+					"name": "sql"
 				},
 				{
 					"dataset": {
 						"referenceName": "bronze_vehiculos_2022_xls",
 						"type": "DatasetReference"
 					},
-					"name": "source3"
+					"name": "xls2022"
 				},
 				{
 					"dataset": {
 						"referenceName": "bronze_vehiculos_2023_xls",
 						"type": "DatasetReference"
 					},
-					"name": "source4"
+					"name": "xls2023"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_vehiculos_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "select1"
@@ -46,6 +54,15 @@
 				},
 				{
 					"name": "select3"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "union3"
 				}
 			],
 			"scriptLines": [
@@ -60,7 +77,7 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> source1",
+				"     ignoreNoFilesFound: false) ~> csv",
 				"source(output(",
 				"          AnioFuente as string,",
 				"          VehiculoId as string,",
@@ -74,7 +91,7 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source2",
+				"     format: 'table') ~> sql",
 				"source(output(",
 				"          nro_bus as string,",
 				"          placa as string,",
@@ -86,7 +103,7 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> source3",
+				"     ignoreNoFilesFound: false) ~> xls2022",
 				"source(output(",
 				"          nro_bus as string,",
 				"          placa as string,",
@@ -98,8 +115,8 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> source4",
-				"source1 select(mapColumn(",
+				"     ignoreNoFilesFound: false) ~> xls2023",
+				"csv select(mapColumn(",
 				"          VehiculoId = nro_bus,",
 				"          Placa = placa,",
 				"          TipoVehiculo = tipo_bus,",
@@ -110,7 +127,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"source3 select(mapColumn(",
+				"xls2022 select(mapColumn(",
 				"          VehiculoId = nro_bus,",
 				"          Placa = placa,",
 				"          TipoVehiculo = tipo_bus,",
@@ -121,7 +138,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
-				"source4 select(mapColumn(",
+				"xls2023 select(mapColumn(",
 				"          VehiculoId = nro_bus,",
 				"          Placa = placa,",
 				"          TipoVehiculo = tipo_bus,",
@@ -131,7 +148,39 @@
 				"          Estado = estado",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select3"
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select1, sql union(byName: true)~> union1",
+				"union1, select2 union(byName: true)~> union2",
+				"union2, select3 union(byName: true)~> union3",
+				"union3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as string,",
+				"          VehiculoId as string,",
+				"          Placa as string,",
+				"          TipoVehiculo as string,",
+				"          CapacidadEfectiva as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          VehiculoId,",
+				"          Placa,",
+				"          TipoVehiculo,",
+				"          CapacidadEfectiva,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
 			]
 		}
 	}
