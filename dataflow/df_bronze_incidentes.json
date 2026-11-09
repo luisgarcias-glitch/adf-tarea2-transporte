@@ -36,7 +36,15 @@
 					"name": "xls2023"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_incidentes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "select1"
@@ -46,6 +54,15 @@
 				},
 				{
 					"name": "select3"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "union3"
 				}
 			],
 			"scriptLines": [
@@ -125,35 +142,53 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
 				"xls2022 select(mapColumn(",
-				"          id_incidente,",
-				"          tipo,",
-				"          severidad,",
-				"          fecha_inicio,",
-				"          hora_inicio,",
-				"          fecha_fin,",
-				"          hora_fin,",
-				"          fecha_registro,",
-				"          rutas_afectadas,",
-				"          vehiculo_afectado,",
-				"          descripcion",
+				"          IncidenteId = id_incidente,",
+				"          TipoIncidente = tipo,",
+				"          Severidad = severidad,",
+				"          FechaHoraInicio = fecha_inicio,",
+				"          FechaHoraFin = fecha_fin,",
+				"          FechaHoraRegistro = fecha_registro,",
+				"          VehiculoId = vehiculo_afectado,",
+				"          Descripcion = descripcion",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
 				"xls2023 select(mapColumn(",
-				"          id_incidente,",
-				"          tipo,",
-				"          severidad,",
-				"          fecha_inicio,",
-				"          hora_inicio,",
-				"          fecha_fin,",
-				"          hora_fin,",
-				"          fecha_registro,",
-				"          rutas_afectadas,",
-				"          vehiculo_afectado,",
-				"          descripcion",
+				"          IncidenteId = id_incidente,",
+				"          TipoIncidente = tipo,",
+				"          Severidad = severidad,",
+				"          FechaHoraInicio = fecha_inicio,",
+				"          FechaHoraFin = fecha_fin,",
+				"          FechaHoraRegistro = fecha_registro,",
+				"          VehiculoId = vehiculo_afectado,",
+				"          Descripcion = descripcion",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select3"
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select1, sql union(byName: true)~> union1",
+				"union1, select2 union(byName: true)~> union2",
+				"union2, select3 union(byName: true)~> union3",
+				"union3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as string,",
+				"          IncidenteId as string,",
+				"          TipoIncidente as string,",
+				"          Severidad as string,",
+				"          FechaHoraInicio as string,",
+				"          FechaHoraFin as string,",
+				"          FechaHoraRegistro as string,",
+				"          VehiculoId as string,",
+				"          Descripcion as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
 			]
 		}
 	}
