@@ -40,6 +40,24 @@
 			"transformations": [
 				{
 					"name": "select1"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "select3"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "union3"
+				},
+				{
+					"name": "union4"
 				}
 			],
 			"scriptLines": [
@@ -57,23 +75,9 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> csv",
 				"source(output(",
-				"          AnioFuente as integer,",
+				"          AnioFuente as string,",
 				"          ParadaHistoricaId as string,",
 				"          CodigoPublicado as string,",
-				"          NombreParada as string,",
-				"          Zona as string,",
-				"          Latitud as decimal(9,6),",
-				"          Longitud as decimal(9,6),",
-				"          VigenciaDesde as date,",
-				"          VigenciaHasta as date,",
-				"          Estado as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> sql",
-				"source(output(",
-				"          ParadaHistoricaId as string,",
 				"          NombreParada as string,",
 				"          Zona as string,",
 				"          Latitud as string,",
@@ -81,6 +85,20 @@
 				"          VigenciaDesde as string,",
 				"          VigenciaHasta as string,",
 				"          Estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> sql",
+				"source(output(",
+				"          nro_parada as string,",
+				"          nombre_parada as string,",
+				"          zona as string,",
+				"          latitud as string,",
+				"          longitud as string,",
+				"          fecha_desde as string,",
+				"          fecha_hasta as string,",
+				"          estado as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -109,7 +127,35 @@
 				"          Estado = estado",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1"
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"xls2022 select(mapColumn(",
+				"          ParadaHistoricaId = nro_parada,",
+				"          NombreParada = nombre_parada,",
+				"          Zona = zona,",
+				"          Latitud = latitud,",
+				"          Longitud = longitud,",
+				"          VigenciaDesde = fecha_desde,",
+				"          VigenciaHasta = fecha_hasta,",
+				"          Estado = estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"xls2023 select(mapColumn(",
+				"          ParadaHistoricaId = nro_parada,",
+				"          NombreParada = nombre_parada,",
+				"          Zona = zona,",
+				"          Latitud = latitud,",
+				"          Longitud = longitud,",
+				"          VigenciaDesde = fecha_desde,",
+				"          VigenciaHasta = fecha_hasta,",
+				"          Estado = estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select1, sql union(byName: true)~> union1",
+				"union1, select2 union(byName: true)~> union2",
+				"select3 union(byName: true)~> union3",
+				"union2, select3 union(byName: true)~> union4"
 			]
 		}
 	}
