@@ -33,6 +33,9 @@
 				},
 				{
 					"name": "derivedColumn3"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -52,7 +55,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> source1",
-				"source1 derive(ParadaHistoricaId = trim(ParadaHistoricaId),",
+				"select1 derive(ParadaHistoricaId = trim(ParadaHistoricaId),",
 				"          NombreParada = trim(NombreParada),",
 				"          Zona = upper(trim(Zona)),",
 				"          Estado = upper(trim(Estado))) ~> derivedColumn1",
@@ -61,6 +64,19 @@
 				"derivedColumn2 derive(VigenciaDesde = iif(instr(VigenciaDesde, '/')>0, toDate(VigenciaDesde, 'dd/MM/yy'), toDate(VigenciaDesde, 'yyyy-MM-dd')),",
 				"          VigenciaHasta = iif(instr(VigenciaHasta, '/')>0, toDate(VigenciaHasta, 'dd/MM/yy'), toDate(VigenciaHasta, 'yyyy-MM-dd')),",
 				"          CodigoPublicado =   coalesce(CodigoPublicado, ParadaHistoricaId)) ~> derivedColumn3",
+				"source1 select(mapColumn(",
+				"          ParadaHistoricaId,",
+				"          CodigoPublicado,",
+				"          NombreParada,",
+				"          Zona,",
+				"          Latitud,",
+				"          Longitud,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
 				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
